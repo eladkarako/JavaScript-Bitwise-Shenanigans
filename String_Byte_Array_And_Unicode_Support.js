@@ -1,97 +1,77 @@
+String.prototype.base64_to_string = function () { return window.atob(this)}; //bonus
+String.prototype.as_base64_string = function () { return window.btoa(this)}; //bonus
+
 /**
- * asynchronous implementation of string-to byte-array (ArrayBuffer) that uses 'Blob' and 'FileReader'.
- * @param str
- * @param callback
- * @deprecated
+ * @method as_array_buffer
+ * read a string (I/O!!!) into an ArrayBuffer, you should choose ''new Uint8Array(.....)'' to view the result...
+ * @param {function} callback
  */
-function to_byte_array(str, callback) {
+String.prototype.as_array_buffer = function (callback) {
   var reader = new FileReader();
-  str = new Blob([str, {type: "text/plain"}]);
-
-  reader.onloadend = function () {
-    callback(reader.result)
-  };
-  reader.readAsArrayBuffer(str);
-}
-
+  reader.onload = function () { callback(reader.result)};
+  reader.readAsArrayBuffer(new Blob([this], {type: 'text/plain'}));
+};
 
 /**
- * longer implementation of string-to byte-array
+ * @method as_byte_array
+ * represent string as array byte, chars with value > 128 will get 2 or 3 cells to represent their's value.
+ * @note this function is limited by ''charCodeAt'' to chars with codes < 65536. most of higher chars will still have representative (or ''char replacement'') in the < 65536 table.
  * @returns {Array}
- * @deprecated
  */
-function to_byte_array(str) {
+String.prototype.as_byte_array = function () {
   var b = [];
 
-  Array.prototype.forEach.call(str, function (c) {
-    c = c.charCodeAt(0);
-    if (c < 128) {          //128     0x80     Math.pow(2,7)
-      b.push(0);
-      b.push(0);
-      b.push(0);
-      b.push(c);
-    }
-    else if (c < 2048) {    //2048    0x800    Math.pow(2,11)
-      b.push(0);
-      b.push(0);
-      b.push(c >> 6 | 192);
-      b.push(c & 63 | 128);
-    }
-    else if (c < 65536) {  //65536   0x10000  Math.pow(2,16)
-      b.push(0);
-      b.push(c >> 12 | 224);
-      b.push(c >> 6 & 63 | 128);
-      b.push(c & 63 | 128);
-    }
-    else {
-      b.push(c >> 18 | 240);
-      b.push(c >> 12 & 63 | 128);
-      b.push(c >> 6 & 63 | 128);
-      b.push(c & 63 | 128);
-    }
-  });
-  return b;
-}
-
-
-/**
- * convert a string to a native array of 4 byte value (array's length is always a whole divided of 4).
- * @param {string} str
- * @returns {Array}
- */
-function to_byte_array(str) {
-  var b = [];
-
-  Array.prototype.forEach.call(str, function (c) {
+  this.split('').forEach(function (c) {
     c = c.charCodeAt(0);
 
-    (c < 128) ? (b.push(0), b.push(0), b.push(0), b.push(c)) :
-      (c < 2048) ? ( b.push(0), b.push(0), b.push(c >> 6 | 192), b.push(c & 63 | 128)) :
-        (c < 65536) ? (b.push(0), b.push(c >> 12 | 224), b.push(c >> 6 & 63 | 128), b.push(c & 63 | 128)) :
-          (b.push(c >> 18 | 240), b.push(c >> 12 & 63 | 128), b.push(c >> 6 & 63 | 128), b.push(c & 63 | 128));
+    (c < 128) ? (b.push(c)) :
+      (c < 2048) ? ( b.push(c >> 6 | 192), b.push(c & 63 | 128)) :
+        (b.push(c >> 12 | 224), b.push(c >> 6 & 63 | 128), b.push(c & 63 | 128));
   });
   return b;
-}
+};
 
 /**
- * convert a string to a native array of 1's and 0's
- * @param {string} str
- * @returns {Array}
+ * @method as_unicode_decoded
+ * turns a string into a string with chars-value of less than 128 (but more chars)
+ * @example #1:   "א"->([215, 144])-> "[?][?]"
+ * @returns {string}
  */
-function string_to_binary_array(str) {
-  str = str.toByteArray();
-  str = str.map(function (n) { return n.toString(2) });
-  str = str.join('').split('').map(function (n) { Number(n)});
-  return str;
-}
+String.prototype.as_unicode_decoded = function () {
+  //breaks characters with code > 128 to pairs, then parse the pairs to ''strings''.
+  return String.fromCharCode.apply(null, this.as_byte_array());
+};
 
+/**
+ * @method as_unicode_encoded
+ * turns a string into its unicode format collapsing extra chars (but result with chars with value > 128)
+ * @returns {string}
+ */
+String.prototype.as_unicode_encoded = function () {
+  //join strings that are pairs of characters with code < 128 to what probably had been their original format
 
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||
+  var
+    str = this
+    , sb = []
+    , i
+    , c
+    ;
 
-String.prototype.toByteArray = function () { return to_byte_array(this) };
-String.prototype.toByteArray = function () { return to_byte_array(this) };
-Array.prototype.toWholeString = function () { return String.fromCharCode.apply(null, this) };
+  str = str.split('').map(function (c) {return c.charCodeAt(0)});
 
-window.base64dec = window.atob;
-window.base64enc = window.btoa;
+  for (i = 0; i < str.length; i += 1) {
+    c = [str[i] || '', str[i + 1] || '', str[i + 2] || ''];
+
+    if (c[0] < 128)
+      sb.push(String.fromCharCode(c[0]));
+    else if (191 < c[0] && c[0] < 224) {
+      sb.push(String.fromCharCode(((c[0] & 31) << 6) | (c[1] & 63)));
+      i += 1;
+    } else {
+      sb.push(String.fromCharCode(((c[0] & 15) << 12) | ((c[1] & 63) << 6) | (c[2] & 63)));
+      i += 2;
+    }
+  }
+  sb = sb.join('');
+  return sb;
+};
