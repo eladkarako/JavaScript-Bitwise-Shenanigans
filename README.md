@@ -102,7 +102,7 @@ By using
 
 
 -  Due to some limitation of `String.prototype.charCodeAt` can not process chars with-value > `0x10000 (65536)` -- the `"א".as_array_buffer` may be more accurate in the future, since `"א".as_array_buffer` uses a `FileReader` to read a unicode-encoded-string as array-buffer, while conventional methods such-as `"א".as_unicode_decoded()` or `"א".as_byte_array` will convert the string char-by-char, using some bitewise operations to render the "ASCII-like" result of chars with value < 128. This is a known fact...
--  finally the method such as `base64_to_string` and `as_base64_string` are wrapping around `atob` and `btoa` which I never remmember which one does what *(serioudly w.t.f. are those names??!!)*
+-  finally the method such as `base64_to_string` and `as_base64_string` are wrapping around `atob` and `btoa` which I never remember which one does what *(seriously w.t.f. are those names??!!)*
 
 <hr/>
 
