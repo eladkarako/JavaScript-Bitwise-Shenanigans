@@ -2,7 +2,7 @@
 Yeah I &lt;3 Bitewise... String, ArrayBuffer, Uint8Array, Uint16Array, Uint32Array. And Native Implementation That Won't Suck That Much.
 
 from the following code:
-'''js
+
 	String.prototype.base64_to_string = function () { return window.atob(this)}; //bonus
 	String.prototype.as_base64_string = function () { return window.btoa(this)}; //bonus
 
@@ -80,11 +80,13 @@ from the following code:
 	  sb = sb.join('');
 	  return sb;
 	};
-'''
 
 
 -  you can turn `"א"` (unicode `1488`) to its slim-bytewise representattive `[215, 144]` using `"א".as_byte_array()`.
 -  you can turn `"א"` (unicode `1488`) to its 'ASCII-like' string (all chars-values are < 128): `"×"` using `"א".as_unicode_decoded()`
+
+<hr/>
+
 -  you can turn `"×"` back to `"א"` using `"×".as_unicode_encoded()`
 -  you can use some `I/O` (!!!) and turn `"א"` to `ArrayBuffer` to which you can create a `view` using `Uint8Array` (prefered), `Uint16Array`, or `Uint32Array`,
 By using 
@@ -95,11 +97,18 @@ By using
 
 //will log:  [215, 144]
 ```
+
+<hr/>
+
+
 -  Due to some limitation of `String.prototype.charCodeAt` can not process chars with-value > `0x10000 (65536)` -- the `"א".as_array_buffer` may be more accurate in the future, since `"א".as_array_buffer` uses a `FileReader` to read a unicode-encoded-string as array-buffer, while conventional methods such-as `"א".as_unicode_decoded()` or `"א".as_byte_array` will convert the string char-by-char, using some bitewise operations to render the "ASCII-like" result of chars with value < 128. This is a known fact...
 -  finally the method such as `base64_to_string` and `as_base64_string` are wrapping around `atob` and `btoa` which I never remmember which one does what *(serioudly w.t.f. are those names??!!)*
 
+<hr/>
+
 -  the unicode decoding is more a UTF-8/Unicode break-down, so the base64 encode/decode methods will work on Unicode/UTF-8.
 
+<hr/>
 
 -  **Its all by industry standards so you may convert string around, and they will ALWAYS be compatible with `PHP` !!!**.
 
