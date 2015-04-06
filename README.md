@@ -112,3 +112,36 @@ By using
 
 -  **Its all by industry standards so you may convert string around, and they will ALWAYS be compatible with `PHP` !!!**.
 
+
+
+
+Actually there is a much easier (and native, which means - **faster**) solution:
+
+```javascript
+String.prototype.as_byte_array = function(){
+  return unescape(encodeURIComponent(this)).split('').map(function(c){return c.charCodeAt(0)});
+};
+```
+
+`"א".as_byte_array()` -> `[215, 144]`;
+
+
+```javascript
+String.prototype.as_unicode_decoded = function(){
+  return unescape(encodeURIComponent(this));
+};
+```
+
+`"א".as_unicode_decoded()` -> `"×"`;
+
+```javascript
+String.prototype.as_unicode_encoded = function(){
+  return decodeURIComponent(escape(this))
+};
+```
+
+`"×".as_unicode_decoded()` -> `"א"`;
+
+
+## why it works?
+escape/unescape represents characters in `ISO-8859-1` (as %xx hex sequences), and URI-component escaping uses `UTF-8`. Simple as that... 
